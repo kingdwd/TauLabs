@@ -496,6 +496,8 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 		else if (armingInputLevel >= +ARMED_THRESHOLD)
 			manualDisarm = true;
 
+		FlightStatusGet(&flightStatus);
+
 		switch(arm_state) {
 			case ARM_STATE_DISARMED:
 				set_armed_if_changed(FLIGHTSTATUS_ARMED_DISARMED);
@@ -525,6 +527,12 @@ static void process_transmitter_events(ManualControlCommandData * cmd, ManualCon
 				break;
 
 			case ARM_STATE_DISARMING_TIMEOUT:
+				if (flightStatus.FlightMode == FLIGHTSTATUS_FLIGHTMODE_ALTITUDEHOLD ||
+					flightStatus.FlightMode == FLIGHTSTATUS_FLIGHTMODE_RETURNTOHOME ||
+					flightStatus.FlightMode == FLIGHTSTATUS_FLIGHTMODE_LAND ||
+					flightStatus.FlightMode == FLIGHTSTATUS_FLIGHTMODE_PATHPLANNER ||
+					flightStatus.FlightMode == FLIGHTSTATUS_FLIGHTMODE_POSITIONHOLD)
+					armedDisarmStart = lastSysTime;
 				// We get here when armed while throttle low, even when the arming timeout is not enabled
 				if ((settings->ArmedTimeout != 0) && (timeDifferenceMs(armedDisarmStart, lastSysTime) > settings->ArmedTimeout))
 					arm_state = ARM_STATE_DISARMED;

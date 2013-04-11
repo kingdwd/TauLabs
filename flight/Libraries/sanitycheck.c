@@ -156,6 +156,15 @@ int32_t configuration_check()
 					}
 				}
 				break;
+			case MANUALCONTROLSETTINGS_FLIGHTMODEPOSITION_RETURNTOHOME:
+				if (coptercontrol)
+					error_code = SYSTEMALARMS_ALARM_ERROR;
+				else {
+					// Revo supports ReturnToBase
+					if (!TaskMonitorQueryRunning(TASKINFO_RUNNING_PATHFOLLOWER))
+						error_code = SYSTEMALARMS_ALARM_ERROR;
+				}
+				break;
 			default:
 				// Uncovered modes are automatically an error
 				error_code = SYSTEMALARMS_CONFIGERROR_UNDEFINED;
