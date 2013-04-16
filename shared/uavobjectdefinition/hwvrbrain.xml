@@ -6,7 +6,7 @@
 		<field name="AuxPort" units="function" type="enum" elements="1" options="Disabled,GPS,S.Bus,DSM2,DSMX (10bit),DSMX (11bit),ComAux,ComBridge" defaultvalue="Disabled"/>		
 		<field name="TelemetryPort" units="function" type="enum" elements="1" options="Disabled,Telemetry,ComAux,ComBridge" defaultvalue="Telemetry"/>
 		<field name="GPSPort" units="function" type="enum" elements="1" options="Disabled,Telemetry,GPS,ComAux,ComBridge" defaultvalue="GPS"/>
-
+		<field name="RadioPort" units="function" type="enum" elements="1" options="Disabled,Telemetry" defaultvalue="Disabled"/>
 		<field name="USB_HIDPort" units="function" type="enum" elements="1" options="USBTelemetry,RCTransmitter,Disabled" defaultvalue="USBTelemetry"/>
 		<field name="USB_VCPPort" units="function" type="enum" elements="1" options="USBTelemetry,ComBridge,DebugConsole,Disabled" defaultvalue="Disabled"/>
 

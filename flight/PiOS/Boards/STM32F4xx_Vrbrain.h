@@ -32,6 +32,13 @@
 
 #include <stdbool.h>
 
+#if defined(PIOS_INCLUDE_DEBUG_CONSOLE)
+#define DEBUG_LEVEL 0
+#define DEBUG_PRINTF(level, ...) {if(level <= DEBUG_LEVEL && pios_com_debug_id > 0) { PIOS_COM_SendFormattedStringNonBlocking(pios_com_debug_id, __VA_ARGS__); }}
+#else
+#define DEBUG_PRINTF(level, ...)
+#endif	/* PIOS_INCLUDE_DEBUG_CONSOLE */
+
 //------------------------
 // Timers and Channels Used
 //------------------------
@@ -138,6 +145,22 @@ extern uintptr_t pios_com_vcp_id;
 #define PIOS_COM_BRIDGE                 (pios_com_bridge_id)
 #define PIOS_COM_VCP                    (pios_com_vcp_id)
 #define PIOS_COM_DEBUG                  PIOS_COM_AUX
+
+#if defined(PIOS_INCLUDE_RFM22B)
+extern uint32_t pios_rfm22b_id;
+extern uint32_t pios_spi_telem_flash_id;
+#define PIOS_RFM22_SPI_PORT             (pios_spi_telem_id)
+#endif /* PIOS_INCLUDE_RFM22B */
+
+//-------------------------
+// Packet Handler
+//-------------------------
+#define RS_ECC_NPARITY 4
+#define PIOS_PH_MAX_PACKET 255
+#define PIOS_PH_WIN_SIZE 3
+#define PIOS_PH_MAX_CONNECTIONS 1
+extern uint32_t pios_packet_handler;
+#define PIOS_PACKET_HANDLER (pios_packet_handler)
 
 //------------------------
 // TELEMETRY 
