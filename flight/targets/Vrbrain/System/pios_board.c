@@ -202,6 +202,9 @@ uint32_t pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE];
 #define PIOS_COM_BRIDGE_RX_BUF_LEN 65
 #define PIOS_COM_BRIDGE_TX_BUF_LEN 12
 
+#define PIOS_COM_RFM22B_RF_RX_BUF_LEN 512
+#define PIOS_COM_RFM22B_RF_TX_BUF_LEN 512
+
 #define PIOS_COM_AUX_RX_BUF_LEN 512
 #define PIOS_COM_AUX_TX_BUF_LEN 512
 
@@ -211,6 +214,7 @@ uintptr_t pios_com_telem_usb_id = 0;
 uintptr_t pios_com_telem_rf_id = 0;
 uintptr_t pios_com_bridge_id = 0;
 uintptr_t pios_com_overo_id = 0;
+uint32_t pios_rfm22b_id = 0;
 
 static const struct flashfs_cfg flashfs_at45dbx_cfg = {
 	.table_magic = 0x99abceef,
@@ -326,6 +330,16 @@ void PIOS_Board_Init(void) {
 
 	PIOS_LED_Init(&pios_led_cfg);
 
+	//Set USB-Enable output
+	GPIO_InitTypeDef GPIO_InitStructure;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+	GPIO_Init(GPIOD, &GPIO_InitStructure);
+	GPIO_ResetBits(GPIOD, GPIO_Pin_13);
+
 #if defined(PIOS_INCLUDE_I2C)
 	if (PIOS_I2C_Init(&pios_i2c_mag_adapter_id, &pios_i2c_mag_adapter_cfg)) {
 		PIOS_DEBUG_Assert(0);
@@ -336,6 +350,11 @@ void PIOS_Board_Init(void) {
 	
 	/* Set up the SPI interface to the gyro */
 	if (PIOS_SPI_Init(&pios_spi_gyro_id, &pios_spi_gyro_cfg)) {
+		PIOS_DEBUG_Assert(0);
+	}
+
+	/* Set up the SPI interface to the flash and rfm22b */
+	if (PIOS_SPI_Init(&pios_spi_telem_id, &pios_spi_telem_cfg)) {
 		PIOS_DEBUG_Assert(0);
 	}
 
@@ -640,6 +659,36 @@ void PIOS_Board_Init(void) {
 
 				break;
 		}
+
+	/* Initalize the RFM22B radio COM device. */
+#if defined(PIOS_INCLUDE_RFM22B)
+	uint8_t hwsettings_radioport;
+	HwVrbrainRadioPortGet(&hwsettings_radioport);
+	switch (hwsettings_radioport) {
+		case HWVRBRAIN_RADIOPORT_DISABLED:
+			break;
+		case HWVRBRAIN_RADIOPORT_TELEMETRY:
+		{
+			extern const struct pios_rfm22b_cfg * PIOS_BOARD_HW_DEFS_GetRfm22Cfg (uint32_t board_revision);
+			const struct pios_board_info * bdinfo = &pios_board_info_blob;
+			const struct pios_rfm22b_cfg *pios_rfm22b_cfg = PIOS_BOARD_HW_DEFS_GetRfm22Cfg(bdinfo->board_rev);
+			if (PIOS_RFM22B_Init(&pios_rfm22b_id, PIOS_RFM22_SPI_PORT, pios_rfm22b_cfg->slave_num, pios_rfm22b_cfg)) {
+				PIOS_Assert(0);
+			}
+			uint8_t *rx_buffer = (uint8_t *) pvPortMalloc(PIOS_COM_RFM22B_RF_RX_BUF_LEN);
+			uint8_t *tx_buffer = (uint8_t *) pvPortMalloc(PIOS_COM_RFM22B_RF_TX_BUF_LEN);
+			PIOS_Assert(rx_buffer);
+			PIOS_Assert(tx_buffer);
+			if (PIOS_COM_Init(&pios_com_telem_rf_id, &pios_rfm22b_com_driver, pios_rfm22b_id,
+					  rx_buffer, PIOS_COM_RFM22B_RF_RX_BUF_LEN,
+					  tx_buffer, PIOS_COM_RFM22B_RF_TX_BUF_LEN)) {
+				PIOS_Assert(0);
+			}
+			break;
+		}
+	}
+
+#endif /* PIOS_INCLUDE_RFM22B */
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();

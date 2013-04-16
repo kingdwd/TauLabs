@@ -33,33 +33,6 @@ include $(TOP)/make/boards/$(BOARD_NAME)/board-info.mk
 # Set to YES for debugging
 DEBUG ?= NO
 
-# Optional module and driver defaults
-USE_COMUSBBRIDGE ?= NO
-USE_TXPID ?= NO
-USE_I2C ?= NO
-USE_ALTITUDE ?= NO
-TEST_FAULTS ?= NO
-USE_MAGBARO ?= NO
-
-# List of optional modules to include
-OPTMODULES =
-ifeq ($(USE_COMUSBBRIDGE), YES)
-OPTMODULES += ComUsbBridge
-endif
-ifeq ($(USE_TXPID), YES)
-OPTMODULES += TxPID
-endif
-ifeq ($(TEST_FAULTS), YES)
-OPTMODULES += Fault
-endif
-ifeq ($(USE_MAGBARO), YES)
-ifeq ($(USE_I2C), YES)
-OPTMODULES += Extensions/MagBaro
-else
-$(error "MagBaro module (USE_MAGBARO=YES) requires i2c (USE_I2C=YES)")
-endif
-endif
-
 # List of modules to include
 MODULES = Sensors 
 MODULES += Attitude/revolution
@@ -92,6 +65,8 @@ PIOSINC = $(PIOS)/inc
 FLIGHTLIBINC = $(FLIGHTLIB)/inc
 MATHLIB = $(FLIGHTLIB)/math
 MATHLIBINC = $(FLIGHTLIB)/math
+RSCODE = $(FLIGHTLIB)/rscode
+RSCODEINC = $(FLIGHTLIB)/rscode
 PIOSSTM32F4XX = $(PIOS)/STM32F4xx
 PIOSCOMMON = $(PIOS)/Common
 PIOSBOARDS = $(PIOS)/Boards
@@ -161,10 +136,15 @@ SRC += $(FLIGHTLIB)/WorldMagModel.c
 SRC += $(FLIGHTLIB)/insgps13state.c
 SRC += $(FLIGHTLIB)/taskmonitor.c
 SRC += $(FLIGHTLIB)/sanitycheck.c
-
 SRC += $(MATHLIB)/sin_lookup.c
 SRC += $(MATHLIB)/misc_math.c
 SRC += $(MATHLIB)/pid.c
+
+## For RFM22b
+SRC += $(RSCODE)/berlekamp.c
+SRC += $(RSCODE)/crcgen.c
+SRC += $(RSCODE)/galois.c
+SRC += $(RSCODE)/rs.c
 
 ## PIOS Hardware (STM32F4xx)
 include $(PIOS)/STM32F4xx/library.mk
@@ -176,6 +156,8 @@ SRC += $(PIOSCOMMON)/pios_hmc5883.c
 SRC += $(PIOSCOMMON)/pios_ms5611_spi.c
 SRC += $(PIOSCOMMON)/pios_crc.c
 SRC += $(PIOSCOMMON)/pios_com.c
+SRC += $(PIOSCOMMON)/pios_rfm22b.c
+SRC += $(PIOSCOMMON)/pios_rfm22b_com.c
 SRC += $(PIOSCOMMON)/pios_rcvr.c
 SRC += $(PIOSCOMMON)/pios_sensors.c
 SRC += $(PIOSCOMMON)/pios_at45_flash_jedec.c
@@ -225,13 +207,16 @@ EXTRAINCDIRS  += $(OPUAVTALKINC)
 EXTRAINCDIRS  += $(OPUAVOBJ)
 EXTRAINCDIRS  += $(OPUAVOBJINC)
 EXTRAINCDIRS  += $(OPUAVSYNTHDIR)
+EXTRAINCDIRS  += $(UAVOBJSYNTHDIR)
 EXTRAINCDIRS  += $(FLIGHTLIBINC)
 EXTRAINCDIRS  += $(MATHLIBINC)
+EXTRAINCDIRS  += $(RSCODEINC)
 EXTRAINCDIRS  += $(PIOSSTM32F4XX)
 EXTRAINCDIRS  += $(PIOSCOMMON)
 EXTRAINCDIRS  += $(PIOSBOARDS)
 EXTRAINCDIRS  += $(STMSPDINCDIR)
 EXTRAINCDIRS  += $(CMSISDIR)
+EXTRAINCDIRS  += $(BOOTINC)
 EXTRAINCDIRS  += $(PYMITEINC)
 EXTRAINCDIRS  += $(HWDEFSINC)
 EXTRAINCDIRS  += $(DEBUG_CM3_DIR_INC)

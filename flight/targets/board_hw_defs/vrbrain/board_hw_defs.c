@@ -393,6 +393,179 @@ void PIOS_SPI_gyro_irq_handler(void)
 	PIOS_SPI_IRQ_Handler(pios_spi_gyro_id);
 }
 
+
+/*
+ * SPI3 Interface
+ * Used for Flash and the RFM22B
+ */
+void PIOS_SPI_telem_irq_handler(void);
+void DMA1_Stream0_IRQHandler(void) __attribute__((alias("PIOS_SPI_telem_irq_handler")));
+void DMA1_Stream5_IRQHandler(void) __attribute__((alias("PIOS_SPI_telem_irq_handler")));
+static const struct pios_spi_cfg pios_spi_telem_cfg = {
+	.regs = SPI3,
+	.remap = GPIO_AF_SPI3,
+	.init = {
+		.SPI_Mode              = SPI_Mode_Master,
+		.SPI_Direction         = SPI_Direction_2Lines_FullDuplex,
+		.SPI_DataSize          = SPI_DataSize_8b,
+		.SPI_NSS               = SPI_NSS_Soft,
+		.SPI_FirstBit          = SPI_FirstBit_MSB,
+		.SPI_CRCPolynomial     = 7,
+		.SPI_CPOL              = SPI_CPOL_Low,
+		.SPI_CPHA              = SPI_CPHA_1Edge,
+		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8,
+	},
+	.use_crc = false,
+	.dma = {
+		.irq = {
+			// Note this is the stream ID that triggers interrupts (in this case RX)
+			.flags = (DMA_IT_TCIF0 | DMA_IT_TEIF0 | DMA_IT_HTIF0),
+			.init = {
+				.NVIC_IRQChannel = DMA1_Stream0_IRQn,
+				.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
+				.NVIC_IRQChannelSubPriority = 0,
+				.NVIC_IRQChannelCmd = ENABLE,
+			},
+		},
+
+		.rx = {
+			.channel = DMA1_Stream0,
+			.init = {
+				.DMA_Channel            = DMA_Channel_0,
+				.DMA_PeripheralBaseAddr = (uint32_t) & (SPI3->DR),
+				.DMA_DIR                = DMA_DIR_PeripheralToMemory,
+				.DMA_PeripheralInc      = DMA_PeripheralInc_Disable,
+				.DMA_MemoryInc          = DMA_MemoryInc_Enable,
+				.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
+				.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte,
+				.DMA_Mode               = DMA_Mode_Normal,
+				.DMA_Priority           = DMA_Priority_Medium,
+				//TODO: Enable FIFO
+				.DMA_FIFOMode           = DMA_FIFOMode_Disable,
+                .DMA_FIFOThreshold      = DMA_FIFOThreshold_Full,
+                .DMA_MemoryBurst        = DMA_MemoryBurst_Single,
+                .DMA_PeripheralBurst    = DMA_PeripheralBurst_Single,
+			},
+		},
+		.tx = {
+			.channel = DMA1_Stream5,
+			.init = {
+				.DMA_Channel            = DMA_Channel_0,
+				.DMA_PeripheralBaseAddr = (uint32_t) & (SPI3->DR),
+				.DMA_DIR                = DMA_DIR_MemoryToPeripheral,
+				.DMA_PeripheralInc      = DMA_PeripheralInc_Disable,
+				.DMA_MemoryInc          = DMA_MemoryInc_Enable,
+				.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
+				.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte,
+				.DMA_Mode               = DMA_Mode_Normal,
+				.DMA_Priority           = DMA_Priority_Medium,
+				.DMA_FIFOMode           = DMA_FIFOMode_Disable,
+                .DMA_FIFOThreshold      = DMA_FIFOThreshold_Full,
+                .DMA_MemoryBurst        = DMA_MemoryBurst_Single,
+                .DMA_PeripheralBurst    = DMA_PeripheralBurst_Single,
+			},
+		},
+	},
+	.sclk = {
+		.gpio = GPIOC,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_10,
+			.GPIO_Speed = GPIO_Speed_100MHz,
+			.GPIO_Mode = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL
+		},
+	},
+	.miso = {
+		.gpio = GPIOC,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_11,
+			.GPIO_Speed = GPIO_Speed_50MHz,
+			.GPIO_Mode = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL
+		},
+	},
+	.mosi = {
+		.gpio = GPIOC,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_12,
+			.GPIO_Speed = GPIO_Speed_50MHz,
+			.GPIO_Mode = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL
+		},
+	},
+	.slave_count = 1,
+	.ssel = {
+		{      // RFM22b
+		.gpio = GPIOD,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_0,
+			.GPIO_Speed = GPIO_Speed_50MHz,
+			.GPIO_Mode  = GPIO_Mode_OUT,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd = GPIO_PuPd_UP
+		} },
+	},
+};
+
+uint32_t pios_spi_telem_id;
+void PIOS_SPI_telem_irq_handler(void)
+{
+	/* Call into the generic code to handle the IRQ for this specific device */
+	PIOS_SPI_IRQ_Handler(pios_spi_telem_id);
+}
+
+#if defined(PIOS_INCLUDE_RFM22B)
+#include <pios_rfm22b_priv.h>
+
+static const struct pios_exti_cfg pios_exti_rfm22b_cfg __exti_config = {
+	.vector = PIOS_RFM22_EXT_Int,
+	.line = EXTI_Line1,
+	.pin = {
+		.gpio = GPIOE,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_1,
+			.GPIO_Speed = GPIO_Speed_100MHz,
+			.GPIO_Mode = GPIO_Mode_IN,
+			.GPIO_OType = GPIO_OType_OD,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL,
+		},
+	},
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel = EXTI1_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
+			.NVIC_IRQChannelSubPriority = 0,
+			.NVIC_IRQChannelCmd = ENABLE,
+		},
+	},
+	.exti = {
+		.init = {
+			.EXTI_Line = EXTI_Line1, // matches above GPIO pin
+			.EXTI_Mode = EXTI_Mode_Interrupt,
+			.EXTI_Trigger = EXTI_Trigger_Falling,
+			.EXTI_LineCmd = ENABLE,
+		},
+	},
+};
+
+const struct pios_rfm22b_cfg pios_rfm22b_vrbrain_cfg = {
+	.spi_cfg = &pios_spi_telem_cfg,
+	.exti_cfg = &pios_exti_rfm22b_cfg,
+	.RFXtalCap = 0x7f,
+	.slave_num = 0,
+	.gpio_direction = GPIO0_TX_GPIO1_RX,
+};
+
+const struct pios_rfm22b_cfg * PIOS_BOARD_HW_DEFS_GetRfm22Cfg (uint32_t board_revision)
+{
+			return &pios_rfm22b_vrbrain_cfg;
+}
+
+#endif /* PIOS_INCLUDE_RFM22B */
+
 #endif /* PIOS_INCLUDE_SPI */
 
 
