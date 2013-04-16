@@ -396,7 +396,7 @@ void PIOS_SPI_gyro_irq_handler(void)
 
 /*
  * SPI3 Interface
- * Used for Flash and the RFM22B
+ * Used for the RFM22B telemetry
  */
 void PIOS_SPI_telem_irq_handler(void);
 void DMA1_Stream0_IRQHandler(void) __attribute__((alias("PIOS_SPI_telem_irq_handler")));
