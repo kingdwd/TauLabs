@@ -787,7 +787,7 @@ static int32_t updateAttitudeINSGPS(bool first_run, bool outdoor_mode)
 	float dT;
 
 	// When the home location is adjusted the filter should be
-	// reinitialized to correctly offset the baro and make sure it
+	// reinitialized to correctly offset the baro and make sure it 
 	// does not blow up.  This flag should only be set when not armed.
 	if (first_run || home_location_updated) {
 		inited = false;
@@ -1148,7 +1148,7 @@ static void settingsUpdatedCb(UAVObjEvent * ev)
 		uint8_t armed;
 		FlightStatusArmedGet(&armed);
 
-		// Do not update the home location while armed as this can blow up the
+		// Do not update the home location while armed as this can blow up the 
 		// filter.  This will need to be overhauled to handle long distance
 		// flights
 		if (armed == FLIGHTSTATUS_ARMED_DISARMED) {
