@@ -326,6 +326,16 @@ void PIOS_Board_Init(void) {
 
 	PIOS_LED_Init(&pios_led_cfg);
 
+	//Set USB-Enable output
+	GPIO_InitTypeDef GPIO_InitStructure;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+	GPIO_Init(GPIOD, &GPIO_InitStructure);
+	GPIO_ResetBits(GPIOD, GPIO_Pin_13);
+
 #if defined(PIOS_INCLUDE_I2C)
 	if (PIOS_I2C_Init(&pios_i2c_mag_adapter_id, &pios_i2c_mag_adapter_cfg)) {
 		PIOS_DEBUG_Assert(0);
