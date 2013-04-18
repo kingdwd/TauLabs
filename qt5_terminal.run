@@ -1,9 +1,0 @@
-#!/bin/bash
-
-#gnome-terminal -e "bash -c \"cd ${PWD##*/}; . ~/.profile; exec bash\""
-
-#gnome-terminal -e "bash -c \"cd ${PWD##*/}; PATH=/home/stefan/Qt5.0.1/5.0.1/gcc/bin:$PATH; exec bash\""
-
-#gnome-terminal -e "bash -c \"cd ${PWD##*/}; exec bash\""
-
-gnome-terminal -e "bash -c \"export PATH=/home/stefan/Qt5.0.1/5.0.1/gcc/bin:$PATH; cd ${PWD##*/}; exec bash\""
