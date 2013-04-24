@@ -60,6 +60,7 @@
 #define PIOS_INCLUDE_WDG
 
 /* Variables related to the RFM22B functionality */
+#define PIOS_INCLUDE_RFM22B_868MHZ
 #define PIOS_INCLUDE_RFM22B
 #define PIOS_INCLUDE_RFM22B_COM
 
