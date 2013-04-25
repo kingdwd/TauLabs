@@ -231,7 +231,7 @@ int32_t PIOS_FLASHFS_GetNewAddress(uint32_t objId, uint16_t instId)
  * @note This uses one sector on the flash chip per object so that no buffering in ram
  * must be done when erasing the sector before a save
  */
-int32_t PIOS_FLASHFS_ObjSave(uint32_t fs_id, uint32_t objId, uint16_t instId, uint8_t * data, uint16_t obj_size)
+int32_t PIOS_FLASHFS_ObjSave(uintptr_t fs_id, uint32_t objId, uint16_t instId, uint8_t * data, uint16_t obj_size)
 {
 	uint8_t crc = 0;
 
@@ -305,7 +305,7 @@ int32_t PIOS_FLASHFS_ObjSave(uint32_t fs_id, uint32_t objId, uint16_t instId, ui
  * @note This uses one sector on the flash chip per object so that no buffering in ram
  * must be done when erasing the sector before a save
  */
-int32_t PIOS_FLASHFS_ObjLoad(uint32_t fs_id, uint32_t objId, uint16_t instId, uint8_t * data, uint16_t objSize)
+int32_t PIOS_FLASHFS_ObjLoad(uintptr_t fs_id, uint32_t objId, uint16_t instId, uint8_t * data, uint16_t objSize)
 {
 	uint8_t crc = 0;
 	uint8_t crcFlash = 0;
@@ -382,7 +382,7 @@ int32_t PIOS_FLASHFS_ObjLoad(uint32_t fs_id, uint32_t objId, uint16_t instId, ui
  * remains but destination sector is erased.  This will make the load fail as the
  * file header won't match the object.  At next save it goes back there.
  */
-int32_t PIOS_FLASHFS_ObjDelete(uint32_t fs_id, uint32_t objId, uint16_t instId)
+int32_t PIOS_FLASHFS_ObjDelete(uintptr_t fs_id, uint32_t objId, uint16_t instId)
 {
 	int32_t addr = PIOS_FLASHFS_GetObjAddress(objId, instId);
 

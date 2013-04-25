@@ -43,6 +43,6 @@ struct flashfs_cfg {
 
 int32_t PIOS_FLASHFS_Init(const struct flashfs_cfg * cfg);
 int32_t PIOS_FLASHFS_Format();
-int32_t PIOS_FLASHFS_ObjSave(uint32_t fs_id, uint32_t objId, uint16_t instId, uint8_t * data, uint16_t obj_size);
-int32_t PIOS_FLASHFS_ObjLoad(uint32_t fs_id, uint32_t obj_id, uint16_t instId, uint8_t * data, uint16_t objSize);
-int32_t PIOS_FLASHFS_ObjDelete(uint32_t fs_id, uint32_t objId, uint16_t instId);
+int32_t PIOS_FLASHFS_ObjSave(uintptr_t fs_id, uint32_t objId, uint16_t instId, uint8_t * data, uint16_t obj_size);
+int32_t PIOS_FLASHFS_ObjLoad(uintptr_t fs_id, uint32_t obj_id, uint16_t instId, uint8_t * data, uint16_t objSize);
+int32_t PIOS_FLASHFS_ObjDelete(uintptr_t fs_id, uint32_t objId, uint16_t instId);
