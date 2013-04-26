@@ -211,6 +211,7 @@ uintptr_t pios_com_bridge_id = 0;
 uintptr_t pios_com_overo_id = 0;
 
 uintptr_t pios_uavo_settings_fs_id;
+uintptr_t pios_waypoints_settings_fs_id;
 
 static const struct flashfs_cfg flashfs_at45dbx_cfg = {
 	.table_magic = 0x99abceef,
