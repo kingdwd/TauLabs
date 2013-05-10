@@ -12,7 +12,6 @@
         <file>images/warning.svg</file>
         <file>images/error.svg</file>
         <file>images/deviceID-0402.svg</file>
-    </qresource>
-</RCC>
         <file>images/gcs-board-vrbrain.png</file>
+    </qresource>
 </RCC>
