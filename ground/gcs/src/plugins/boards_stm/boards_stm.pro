@@ -19,3 +19,6 @@ SOURCES += \
     discoveryf4.cpp \
     vrbrain.cpp
 
+RESOURCES += \
+    stm.qrc
+

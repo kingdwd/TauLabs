@@ -1,0 +1,51 @@
+e12fbcd2b976e746eeaecc6ba3b687f51caa47cf board_plugin_next
+535c62167e0296eadbd84db9d384a2e2d93cc840 board_plugin_next
+9353da8f1be5f447d0b9d6f3d752205fb09f79bd board_plugin_next
+054f28f00bbe5bea02a73c1072cd5be3f3aee827 Merge pull request #492 from peabody124/board_plugin_next
+4a9d71d66206bbd8b85fba02726c3289b9f0a666 TauLabs plugin: convert from qt5 to qt4 plugin
+19eb9520519eaf0183da783f25a76e1762257378 Board plugin: export the deviceDescriptorStruct class
+520e61c8f656031fd8bd90498f6339d053afd4b4 Board Plugin: Store and use the specific HwBoard UAVO
+885a83752d7cf0be11d0a39b91d7cf702119c1ea Board Plugin: Fix image paths
+71d41aa35eda60b259ab6b86ede5fb35e07c8d9c Board Plugin: Convert IBoardType->getBoardPicture() to QPixmap
+99bee2543d8468badbe0afb6070accb3bf572059 Uploader: Use board_plugin for image of boards
+19375b06053e341aeb90e13d463db57123781771 Uploader: Use board plugin for getting the board name
+7f23cb00d1ebfb7d2030765031304c41807cb2ad GCS Board Plugins: Removed TODO that meant nothing
+a6c8036f12be401d9a8936813c51922c11c1f7d8 GCS: Add board plugin for taulabs
+59c20425076d404be760d2b3c7bace9c31ff71bf Merge pull request #487 from peabody124/path_endpoint
+e8a69def67eb3ec155bb453157ff22e60dbdece0 PathFollowers: check if we hit waypoint in endpoint mode
+d77110bb28e9264f20fe9d12e82e24c399e8e281 PathFollowerSettings: add endpoint radius for ground and vtol
+0c3a6422475f3ffeb5ab6fd90aed2193dcab11dd add vrbrain to build package
+9422236a7160e4d8e81cedf817dedcbcad966db5 Merge remote-tracking branch 'taulabs/next' into sc/vrbrain
+22ec37711e9235b7f911566385b44a0929bc2c35 Merge pull request #459 from kubark42/pfd-qml-fixes
+b76425f0f779bd84e257b970e24266f2f99e9b96 Merge remote-tracking branch 'taulabs/next' into sc/vrbrain
+6698126af234413c33adb9a45f98ae9ce8e43e09 Merge pull request #478 from solidgoldbomb/simpler-bound-sym
+2b301ff9d832692799de9a11f2e08b046fb73a95 Merge remote-tracking branch 'taulabs/next' into sc/vrbrain
+a54dc6081b1340d96ef469e94055d8754c2538c3 added 'MPU6000Rate' and 'MPU6000DLPF' into Vrbrain
+6c4191d040275d9d54536df725fe547c63f9d98f Merge pull request #378 from kubark42/object-widget-checkbox-relation
+2b7ca6fd29bc58f2e861d36a4bcd551420afbcbc Moved arbitrary string functionality to subclass.
+c2534958a7c43f634ddd8e4b852eaa86c76914ea Add support for groupboxes. Extended UAVO widget checkbox relation to support arbitrary strings.
+d59a9f1c03fdddb5d068d3b1ac86d0f0dd670820 Merge remote-tracking branch 'taulabs/next' into sc/vrbrain
+b08d477aed26b1a9f2f4cb1e5d2374b9bca11892 Merge pull request #480 from peabody124/sim_osx_fixes
+1ea99d46735d99a5a4a990f50ed513de5393d15e Simulation: fix for pios_debug
+f8c96552746da107cfd60a133737e71847cd58d1 GroundPathFollower: remove static from *Start and *Initialize
+48627a249b2dd0a97c241129eaf23844bc6b9499 math: implement bound_sym() in terms of bound_min_max()
+77ab0722ed582d08a6387a6f1751b011aa294946 Merge pull request #476 from solidgoldbomb/math-unit-tests2
+c022de841503dcec671f60b658f0fe9d7a020443 ut sin_lookup: add basic unit test for sin_lookup.c
+f19b2afb08f6b8c89939991907f628421de70e0d sin_lookup: clean up widely scoped and unneeded includes
+8b1f168179f3be06f096a7608b719afe77843017 sin_lookup: fix typo in init function name
+a53554ab4a2f5bdd41bfff3738dedf558a10ab48 Merge pull request #473 from solidgoldbomb/math-unit-tests
+f720ddc1b08197615abb9cab351859b363b2f1e2 ut misc_math: remove disabled reversed min/max test
+531efdcf57a6adbe2883fbb9d0b1222853b9492a ut misc_math: test a much larger multiple of 360deg around +/-180
+80555363036688321b0709783f904d8114529443 ut misc_math: allow +180 or -180 as valid and correct for 180deg errors
+bbe2609034975ecd130da20629bf5dbdb2240a42 Merge pull request #474 from peabody124/flashfs_format_fix
+3a2416b5703635ebf16dce6f28b139e8033352f5 unit test: add license headers and pointers to google test docs
+b88d5e381d965c499709473d7c64d3af947ff22a FlashFS: fix formatting with multiple instances
+4d9c834afc6045435f5f486138475bdd5046ab16 ut: add unit tests for misc_math.c functions
+161ad9019912fdfce51d05f4398dd7254f30f714 math: include the API declaration to ensure implementation matches
+1b7b72613a262f2a55b07aa650fa07b2e1c1493d Revert "Revert "Merge pull request #469 from peabody124/circular_modulus_deg""
+5ddb6fc50a309252c3c02d48bbe06029b3b32faa Merge remote-tracking branch 'taulabs/next' into sc/vrbrain
+5ecd57ea339488c47af74374f94dfb003d4b7a08 Fixed PFD telemetry arrow loading.
+5171e5128e4950641a2dd72889bed5987ff7e8c3 Fix flickering and improve antialiasing.
+b58d835fc7d648eea7282e1a5fa07683b8a31ce3 Revert "Merge pull request #469 from peabody124/circular_modulus_deg"
+94f13ee53f767e028e5c8e30d2894522ad5cade1 Merge pull request #469 from peabody124/circular_modulus_deg
+fce4f108f7357ad1429407f04a560a91bb9152a6 Circular modulus: small tweak for efficiency

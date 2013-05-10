@@ -87,3 +87,13 @@ QStringList Vrbrain::getSupportedProtocols()
 
     return QStringList("uavtalk");
 }
+
+QPixmap Vrbrain::getBoardPicture()
+{
+    return QPixmap(":/stm/images/vrbrain.png");
+}
+
+QString Vrbrain::getHwUAVO()
+{
+    return "HwVrbrain";
+}
