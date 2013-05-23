@@ -395,6 +395,33 @@ void PIOS_SPI_gyro_irq_handler(void)
 
 #endif /* PIOS_INCLUDE_SPI */
 
+#if defined(PIOS_INCLUDE_FLASH_AT45)
+#include "pios_at45_flashfs_logfs_priv.h"
+#include "pios_at45_flash_jedec_priv.h"
+
+static const struct flashfs_logfs_cfg flashfs_at45_settings_cfg = {
+	.fs_magic      = 0x99abcede,
+	.arena_size    = 0x00100000, /* 1M bytes */
+	.slot_size     = 0x00000100, /* 256 bytes */
+	.start_offset  = 0,	         /* start at the beginning of the chip */
+	.page_size     = 0x00000200, /* 512 bytes */
+};
+
+static const struct flashfs_logfs_cfg flashfs_at45_waypoints_cfg = {
+	.fs_magic      = 0x99abcece,
+	.arena_size    = 0x00100000, /* 1M bytes */
+	.slot_size     = 0x00000040, /* 64 bytes */
+	.start_offset  = 0x00000800, /* start after the settings partition */
+	.page_size     = 0x00000200, /* 512 bytes */
+};
+
+static const struct pios_flash_jedec_cfg flash_at45_cfg = {
+	.expect_manufacturer = JEDEC_MANUFACTURER_ATMEL,
+	.expect_memorytype   = 0x20,
+	.expect_capacity     = 0x06,
+};
+
+#endif	/* PIOS_INCLUDE_FLASH_AT45 */
 
 #if defined(PIOS_OVERO_SPI)
 /* SPI3 Interface
