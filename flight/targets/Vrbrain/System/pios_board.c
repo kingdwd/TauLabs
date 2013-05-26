@@ -360,8 +360,6 @@ void PIOS_Board_Init(void) {
 		AlarmsSet(SYSTEMALARMS_ALARM_BOOTFAULT, SYSTEMALARMS_ALARM_CRITICAL);
 	}
 	
-	//PIOS_IAP_Init();
-
 #if defined(PIOS_INCLUDE_USB)
 	/* Initialize board specific USB data */
 	PIOS_USB_BOARD_DATA_Init();
@@ -629,7 +627,6 @@ void PIOS_Board_Init(void) {
 		case HWVRBRAIN_RCVRPORT_OUTPUTS:
 			//TODO: Prepare the configurations on board_hw_defs and handle here:
 			PIOS_Servo_Init(&pios_servo_rcvr_cfg);
-			//PIOS_Servo_Init(&pios_servo_cfg);
 			break;
 	}
 #else

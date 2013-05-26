@@ -72,9 +72,8 @@ struct logfs_state {
  */
 static uintptr_t logfs_get_addr(const struct logfs_state * logfs, uint8_t arena_id, uint16_t slot_id)
 {
-//	PIOS_Assert(arena_id < (logfs->cfg->total_fs_size / logfs->cfg->arena_size)); // 1 arenas
-	PIOS_Assert(slot_id < (logfs->cfg->arena_size / logfs->cfg->slot_size));  // 2048 - 16384 slots
-                                              //256 slot !!!
+	PIOS_Assert(slot_id < (logfs->cfg->arena_size / logfs->cfg->slot_size));
+
 	return (logfs->cfg->start_offset + (slot_id / (logfs->cfg->page_size / logfs->cfg->slot_size))) ;
 }
 
@@ -659,7 +658,7 @@ static int8_t logfs_append_to_log (struct logfs_state * logfs, uint32_t obj_id, 
 			return -2;
 		}
 
-    // Write buffer to slot_addr
+    // Write buffer to page
 	if (logfs->driver->buffer_to_page (logfs->flash_id,
 						page_addr) != 0){
 			/* Failed to write the data to the buffer */
