@@ -156,6 +156,9 @@
 #if defined(PIOS_INCLUDE_MS5611)
 #include <pios_ms5611.h>
 #endif
+#if defined(PIOS_INCLUDE_MS5611_SPI)
+#include <pios_ms5611.h>
+#endif
 #if defined(PIOS_INCLUDE_IAP)
 #include <pios_iap.h>
 #endif
@@ -174,6 +177,11 @@
 
 #if defined(PIOS_INCLUDE_FLASH)
 #include <pios_flash.h>
+#include <pios_flashfs.h>
+#endif
+
+#if defined(PIOS_INCLUDE_FLASH_AT45)
+#include <pios_flash_at45.h>
 #include <pios_flashfs.h>
 #endif
 

@@ -23,6 +23,8 @@
 #include "STM32F30x_FlyingF3.h"
 #elif USE_STM32F30x_SPARKY
 #include "STM32F30x_Sparky.h"
+#elif USE_STM32F4xx_VRB
+#include "STM32F4xx_Vrbrain.h"
 #else
 #error Board definition has not been provided.
 #endif
