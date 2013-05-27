@@ -1,5 +1,6 @@
 /**
  ******************************************************************************
+ *
  * @addtogroup PIOS PIOS Core hardware abstraction layer
  * @{
  * @addtogroup PIOS_MS5611 MS5611 Functions
@@ -7,8 +8,7 @@
  * @{
  *
  * @file       pios_ms5611_SPI.c
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
- * @author     Virtual Robotix Network Team, http://www.virtualrobotix.com Copyright (C) 2013.
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @brief      MS5611 Pressure Sensor Routines
  * @see        The GNU Public License (GPL) Version 3
  *

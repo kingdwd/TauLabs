@@ -395,134 +395,33 @@ void PIOS_SPI_gyro_irq_handler(void)
 
 #endif /* PIOS_INCLUDE_SPI */
 
+#if defined(PIOS_INCLUDE_FLASH_AT45)
+#include "pios_at45_flashfs_logfs_priv.h"
+#include "pios_at45_flash_jedec_priv.h"
 
-#if defined(PIOS_OVERO_SPI)
-/* SPI3 Interface
- *      - Used for flash communications
- */
-#include <pios_overo_priv.h>
-void PIOS_OVERO_irq_handler(void);
-void DMA1_Stream7_IRQHandler(void) __attribute__((alias("PIOS_OVERO_irq_handler")));
-static const struct pios_overo_cfg pios_overo_cfg = {
-	.regs = SPI3,
-	.remap = GPIO_AF_SPI3,
-	.init = {
-		.SPI_Mode              = SPI_Mode_Slave,
-		.SPI_Direction         = SPI_Direction_2Lines_FullDuplex,
-		.SPI_DataSize          = SPI_DataSize_8b,
-		.SPI_NSS               = SPI_NSS_Hard,
-		.SPI_FirstBit          = SPI_FirstBit_MSB,
-		.SPI_CRCPolynomial     = 7,
-		.SPI_CPOL              = SPI_CPOL_High,
-		.SPI_CPHA              = SPI_CPHA_2Edge,
-		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2,
-	},
-	.use_crc = false,
-	.dma = {
-		.irq = {
-			// Note this is the stream ID that triggers interrupts (in this case TX)
-			.flags = (DMA_IT_TCIF7),
-			.init = {
-				.NVIC_IRQChannel = DMA1_Stream7_IRQn,
-				.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
-				.NVIC_IRQChannelSubPriority = 0,
-				.NVIC_IRQChannelCmd = ENABLE,
-			},
-		},
-
-		.rx = {
-			.channel = DMA1_Stream0,
-			.init = {
-				.DMA_Channel            = DMA_Channel_0,
-				.DMA_PeripheralBaseAddr = (uint32_t) & (SPI3->DR),
-				.DMA_DIR                = DMA_DIR_PeripheralToMemory,
-				.DMA_PeripheralInc      = DMA_PeripheralInc_Disable,
-				.DMA_MemoryInc          = DMA_MemoryInc_Enable,
-				.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
-				.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte,
-				.DMA_Mode               = DMA_Mode_Circular,
-				.DMA_Priority           = DMA_Priority_Medium,
-				//TODO: Enable FIFO
-				.DMA_FIFOMode           = DMA_FIFOMode_Disable,
-				.DMA_FIFOThreshold      = DMA_FIFOThreshold_Full,
-				.DMA_MemoryBurst        = DMA_MemoryBurst_Single,
-				.DMA_PeripheralBurst    = DMA_PeripheralBurst_Single,
-			},
-		},
-		.tx = {
-			.channel = DMA1_Stream7,
-			.init = {
-				.DMA_Channel            = DMA_Channel_0,
-				.DMA_PeripheralBaseAddr = (uint32_t) & (SPI3->DR),
-				.DMA_DIR                = DMA_DIR_MemoryToPeripheral,
-				.DMA_PeripheralInc      = DMA_PeripheralInc_Disable,
-				.DMA_MemoryInc          = DMA_MemoryInc_Enable,
-				.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
-				.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte,
-				.DMA_Mode               = DMA_Mode_Circular,
-				.DMA_Priority           = DMA_Priority_Medium,
-				.DMA_FIFOMode           = DMA_FIFOMode_Disable,
-				.DMA_FIFOThreshold      = DMA_FIFOThreshold_Full,
-				.DMA_MemoryBurst        = DMA_MemoryBurst_Single,
-				.DMA_PeripheralBurst    = DMA_PeripheralBurst_Single,
-			},
-		},
-	},
-	.sclk = {
-		.gpio = GPIOC,
-		.init = {
-			.GPIO_Pin = GPIO_Pin_10,
-			.GPIO_Speed = GPIO_Speed_100MHz,
-			.GPIO_Mode = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd = GPIO_PuPd_NOPULL
-		},
-	},
-	.miso = {
-		.gpio = GPIOC,
-		.init = {
-			.GPIO_Pin = GPIO_Pin_11,
-			.GPIO_Speed = GPIO_Speed_50MHz,
-			.GPIO_Mode = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd = GPIO_PuPd_NOPULL
-		},
-	},
-	.mosi = {
-		.gpio = GPIOC,
-		.init = {
-			.GPIO_Pin = GPIO_Pin_12,
-			.GPIO_Speed = GPIO_Speed_50MHz,
-			.GPIO_Mode = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd = GPIO_PuPd_NOPULL
-		},
-	},
-	.slave_count = 1,
-	.ssel = { {
-		.gpio = GPIOA,
-		.init = {
-			.GPIO_Pin = GPIO_Pin_15,
-			.GPIO_Speed = GPIO_Speed_50MHz,
-			.GPIO_Mode  = GPIO_Mode_OUT,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd = GPIO_PuPd_UP
-		},
-	} },
+static const struct flashfs_logfs_cfg flashfs_at45_settings_cfg = {
+	.fs_magic      = 0x99abcede,
+	.arena_size    = 0x00100000, /* 1M bytes */
+	.slot_size     = 0x00000100, /* 256 bytes */
+	.start_offset  = 0,	         /* start at the beginning of the chip */
+	.page_size     = 0x00000200, /* 512 bytes */
 };
-uint32_t pios_overo_id = 0;
-void PIOS_OVERO_irq_handler(void)
-{
-	/* Call into the generic code to handle the IRQ for this specific device */
-	PIOS_OVERO_DMA_irq_handler(pios_overo_id);
-}
-#else
 
-#endif /* PIOS_OVERO_SPI */
+static const struct flashfs_logfs_cfg flashfs_at45_waypoints_cfg = {
+	.fs_magic      = 0x99abcece,
+	.arena_size    = 0x00100000, /* 1M bytes */
+	.slot_size     = 0x00000040, /* 64 bytes */
+	.start_offset  = 0x00000800, /* start after the settings partition */
+	.page_size     = 0x00000200, /* 512 bytes */
+};
 
+static const struct pios_flash_jedec_cfg flash_at45_cfg = {
+	.expect_manufacturer = JEDEC_MANUFACTURER_ATMEL,
+	.expect_memorytype   = 0x20,
+	.expect_capacity     = 0x06,
+};
 
-
-
+#endif	/* PIOS_INCLUDE_FLASH_AT45 */
 
 #include <pios_usart_priv.h>
 

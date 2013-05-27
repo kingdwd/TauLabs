@@ -213,20 +213,6 @@ uintptr_t pios_com_overo_id = 0;
 uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_waypoints_settings_fs_id;
 
-static const struct flashfs_cfg flashfs_at45dbx_cfg = {
-	.table_magic = 0x99abceef,
-	.obj_magic = 0x3015A371,
-	.obj_table_start = 0x00000001,
-	.obj_table_end = 0x00000200,
-	.sector_size = 0x0000001,
-	.chip_size = 0x0001000,
-};
-
-static const struct pios_flash_jedec_cfg flash_at45dbx_cfg = {
-	.sector_erase = 0x81,
-	.chip_erase = 0x50
-};
-
 /* 
  * Setup a com port based on the passed cfg, driver and buffer sizes. tx size of -1 make the port rx only
  */
@@ -362,8 +348,10 @@ void PIOS_Board_Init(void) {
 		PIOS_DEBUG_Assert(0);
 	}
 
-	PIOS_Flash_Jedec_Init(pios_spi_baro_flash_id, 1, &flash_at45dbx_cfg);
-	PIOS_FLASHFS_Init(&flashfs_at45dbx_cfg);
+	uintptr_t flash_id;
+	PIOS_Flash_Jedec_Init(&flash_id,pios_spi_baro_flash_id, 1, &flash_at45_cfg);
+	PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_at45_settings_cfg, &pios_jedec_flash_driver, flash_id);
+	PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_at45_waypoints_cfg, &pios_jedec_flash_driver, flash_id);
 
 	/* Initialize UAVObject libraries */
 	EventDispatcherInitialize();
