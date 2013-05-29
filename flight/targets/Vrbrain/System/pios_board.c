@@ -318,9 +318,9 @@ void PIOS_Board_Init(void) {
 	}
 
 	uintptr_t flash_id;
-	PIOS_Flash_Jedec_Init(&flash_id,pios_spi_baro_flash_id, 1, &flash_at45_cfg);
-	PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_at45_settings_cfg, &pios_jedec_flash_driver, flash_id);
-	PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_at45_waypoints_cfg, &pios_jedec_flash_driver, flash_id);
+	PIOS_Flash_AT45_Init(&flash_id,pios_spi_baro_flash_id, 1, &flash_at45_cfg);
+	PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_at45_settings_cfg, &pios_at45_flash_driver, flash_id);
+	PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_at45_waypoints_cfg, &pios_at45_flash_driver, flash_id);
 
 	/* Initialize UAVObject libraries */
 	EventDispatcherInitialize();
