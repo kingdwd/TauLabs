@@ -1,11 +1,12 @@
 ###############################################################################
 # @file       Makefile
-# @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
-# @addtogroup
+# @author     The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2009.
+# @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
+# @addtogroup 
 # @{
-# @addtogroup
+# @addtogroup 
 # @{
-# @brief Makefile to build firmware for the VRBrain board.
+# @brief Makefile to build firmware for the Revolution board.
 ###############################################################################
 #
 # This program is free software; you can redistribute it and/or modify
@@ -32,28 +33,56 @@ include $(TOP)/make/boards/$(BOARD_NAME)/board-info.mk
 # Set to YES for debugging
 DEBUG ?= NO
 
+# Optional module and driver defaults
+USE_COMUSBBRIDGE ?= NO
+USE_TXPID ?= NO
+USE_I2C ?= NO
+USE_ALTITUDE ?= NO
+TEST_FAULTS ?= NO
+USE_MAGBARO ?= NO
+
+# List of optional modules to include
+OPTMODULES =
+ifeq ($(USE_COMUSBBRIDGE), YES)
+OPTMODULES += ComUsbBridge
+endif
+ifeq ($(USE_TXPID), YES)
+OPTMODULES += TxPID
+endif
+ifeq ($(TEST_FAULTS), YES)
+OPTMODULES += Fault
+endif
+ifeq ($(USE_MAGBARO), YES)
+ifeq ($(USE_I2C), YES)
+OPTMODULES += Extensions/MagBaro
+else
+$(error "MagBaro module (USE_MAGBARO=YES) requires i2c (USE_I2C=YES)")
+endif
+endif
+
 # List of modules to include
-MODULES = Sensors
-MODULES += Attitude/revolution 
-MODULES += Actuator
+MODULES = Sensors 
+MODULES += Attitude/revolution
 MODULES += ManualControl
 MODULES += Stabilization
+MODULES += Actuator
 MODULES += FirmwareIAP
+MODULES += Airspeed/revolution
 MODULES += Telemetry
 
 OPTMODULES += GPS
 OPTMODULES += AltitudeHold 
+OPTMODULES += PathPlanner
 OPTMODULES += VtolPathFollower 
 OPTMODULES += FixedWingPathFollower
-OPTMODULES += GroundPathFollower
-OPTMODULES += PathPlanner
 OPTMODULES += CameraStab
 OPTMODULES += Autotune
 OPTMODULES += TxPID
+OPTMODULES += Battery
 OPTMODULES += VibrationAnalysis
-OPTMODULES += UAVOMavlinkBridge
-#OPTMODULES += Battery
-OPTMODULES += ComUsbBridge
+
+PYMODULES = 
+#FlightPlan
 
 # Paths
 OPSYSTEM = ./System
@@ -64,8 +93,6 @@ PIOSINC = $(PIOS)/inc
 FLIGHTLIBINC = $(FLIGHTLIB)/inc
 MATHLIB = $(FLIGHTLIB)/math
 MATHLIBINC = $(FLIGHTLIB)/math
-RSCODE = $(FLIGHTLIB)/rscode
-RSCODEINC = $(FLIGHTLIB)/rscode
 PIOSSTM32F4XX = $(PIOS)/STM32F4xx
 PIOSCOMMON = $(PIOS)/Common
 PIOSBOARDS = $(PIOS)/Boards
@@ -78,10 +105,18 @@ STMSPDINCDIR = $(STMSPDDIR)/inc
 DEBUG_CM3_DIR = $(PIOSCOMMONLIB)/Debug
 DEBUG_CM3_DIR_INC = $(DEBUG_CM3_DIR)/inc
 OPUAVOBJINC = $(OPUAVOBJ)/inc
+PYMITE = $(FLIGHTLIB)/PyMite
+PYMITELIB = $(PYMITE)/lib
+PYMITEPLAT = $(PYMITE)/platform/openpilot
+PYMITETOOLS = $(PYMITE)/tools
+PYMITEVM = $(PYMITE)/vm
+PYMITEINC = $(PYMITEVM)
+PYMITEINC += $(PYMITEPLAT)
+PYMITEINC += $(OUTDIR)
 FLIGHTPLANLIB = $(OPMODULEDIR)/FlightPlan/lib
 FLIGHTPLANS = $(OPMODULEDIR)/FlightPlan/flightplans
-MAVLINKINC = $(FLIGHTLIB)/mavlink/v1.0/common
 
+SRC = 
 # optional component libraries
 include $(PIOSCOMMONLIB)/FreeRTOS/library.mk
 #include $(PIOSCOMMONLIB)/dosfs/library.mk
@@ -92,8 +127,19 @@ include $(FLIGHTLIB)/CMSIS3/DSP_Lib/library.mk
 # List C source files here. (C dependencies are automatically generated.)
 # use file-extension c for "c-only"-files
 
+## PyMite files and modules
+SRC += $(OUTDIR)/pmlib_img.c
+SRC += $(OUTDIR)/pmlib_nat.c
+SRC += $(OUTDIR)/pmlibusr_img.c
+SRC += $(OUTDIR)/pmlibusr_nat.c
+PYSRC += $(wildcard ${PYMITEVM}/*.c)
+PYSRC += $(wildcard ${PYMITEPLAT}/*.c)
+PYSRC += ${foreach MOD, ${PYMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
+SRC += $(PYSRC)
+
 ## MODULES
-SRC += ${foreach MOD, ${MODULES} ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
+SRC += ${foreach MOD, ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
+SRC += ${foreach MOD, ${MODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
 ## OPENPILOT CORE:
 SRC += ${OPMODULEDIR}/System/systemmod.c
 SRC += $(OPSYSTEM)/vrbrain.c
@@ -104,18 +150,19 @@ SRC += $(OPUAVTALK)/uavtalk.c
 SRC += $(OPUAVOBJ)/uavobjectmanager.c
 SRC += $(OPUAVOBJ)/eventdispatcher.c
 
-ifeq ($(DEBUG),YES)
+#ifeq ($(DEBUG),YES)
 SRC += $(DEBUG_CM3_DIR)/dcc_stdio.c
 SRC += $(DEBUG_CM3_DIR)/cm3_fault_handlers.c
-endif
+#endif
 
-SRC += $(FLIGHTLIB)/CoordinateConversions.c
 SRC += $(FLIGHTLIB)/paths.c
 SRC += $(FLIGHTLIB)/fifo_buffer.c
 SRC += $(FLIGHTLIB)/WorldMagModel.c
 SRC += $(FLIGHTLIB)/insgps13state.c
 SRC += $(FLIGHTLIB)/taskmonitor.c
 SRC += $(FLIGHTLIB)/sanitycheck.c
+
+SRC += $(MATHLIB)/coordinate_conversions.c
 SRC += $(MATHLIB)/sin_lookup.c
 SRC += $(MATHLIB)/misc_math.c
 SRC += $(MATHLIB)/pid.c
@@ -131,7 +178,6 @@ SRC += $(PIOSCOMMON)/pios_ms5611_spi.c
 SRC += $(PIOSCOMMON)/pios_crc.c
 SRC += $(PIOSCOMMON)/pios_com.c
 SRC += $(PIOSCOMMON)/pios_rcvr.c
-SRC += $(PIOSCOMMON)/pios_sbus.c
 SRC += $(PIOSCOMMON)/pios_sensors.c
 SRC += $(PIOSCOMMON)/pios_flash_at45.c
 SRC += $(PIOSCOMMON)/pios_flashfs_logfs_at45.c
@@ -144,35 +190,68 @@ SRC += $(PIOSCOMMON)/pios_adc.c
 include ./UAVObjects.inc
 SRC += $(UAVOBJSRC)
 
+# List C source files here which must be compiled in ARM-Mode (no -mthumb).
+# use file-extension c for "c-only"-files
+## just for testing, timer.c could be compiled in thumb-mode too
+SRCARM =
+
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)
 CPPSRC =
 
+# List C++ source files here which must be compiled in ARM-Mode.
+# use file-extension .cpp for C++-files (not .C)
+#CPPSRCARM = $(TARGET).cpp
+CPPSRCARM =
+
+# List Assembler source files here.
+# Make them always end in a capital .S. Files ending in a lowercase .s
+# will not be considered source files but generated files (assembler
+# output from the compiler), and will be deleted upon "make clean"!
+# Even though the DOS/Win* filesystem matches both .s and .S the same,
+# it will preserve the spelling of the filenames, and gcc itself does
+# care about how the name is spelled on its command-line.
+
+
+# List Assembler source files here which must be assembled in ARM-Mode..
+ASRCARM =
+
 # List any extra directories to look for include files here.
 #    Each directory must be seperated by a space.
-EXTRAINCDIRS += $(SHAREDAPIDIR)
-EXTRAINCDIRS += $(PIOS)
-EXTRAINCDIRS += $(PIOSINC)
-EXTRAINCDIRS += $(OPSYSTEMINC)
-EXTRAINCDIRS += $(OPUAVTALK)
-EXTRAINCDIRS += $(OPUAVTALKINC)
-EXTRAINCDIRS += $(OPUAVOBJ)
-EXTRAINCDIRS += $(OPUAVOBJINC)
-EXTRAINCDIRS += $(OPUAVSYNTHDIR)
-EXTRAINCDIRS += $(FLIGHTLIBINC)
-EXTRAINCDIRS += $(MATHLIBINC)
-EXTRAINCDIRS += $(RSCODEINC)
-EXTRAINCDIRS += $(PIOSSTM32F4XX)
-EXTRAINCDIRS += $(PIOSCOMMON)
-EXTRAINCDIRS += $(PIOSBOARDS)
-EXTRAINCDIRS += $(STMSPDINCDIR)
-EXTRAINCDIRS += $(CMSISDIR)
-EXTRAINCDIRS += $(BOOTINC)
-EXTRAINCDIRS += $(HWDEFSINC)
-EXTRAINCDIRS += $(DEBUG_CM3_DIR_INC)
-EXTRAINCDIRS += $(MAVLINKINC)
+EXTRAINCDIRS  += $(SHAREDAPIDIR)
+EXTRAINCDIRS  += $(PIOS)
+EXTRAINCDIRS  += $(PIOSINC)
+EXTRAINCDIRS  += $(OPSYSTEMINC)
+EXTRAINCDIRS  += $(OPUAVTALK)
+EXTRAINCDIRS  += $(OPUAVTALKINC)
+EXTRAINCDIRS  += $(OPUAVOBJ)
+EXTRAINCDIRS  += $(OPUAVOBJINC)
+EXTRAINCDIRS  += $(OPUAVSYNTHDIR)
+EXTRAINCDIRS  += $(FLIGHTLIBINC)
+EXTRAINCDIRS  += $(MATHLIBINC)
+EXTRAINCDIRS  += $(PIOSSTM32F4XX)
+EXTRAINCDIRS  += $(PIOSCOMMON)
+EXTRAINCDIRS  += $(PIOSBOARDS)
+EXTRAINCDIRS  += $(STMSPDINCDIR)
+EXTRAINCDIRS  += $(CMSISDIR)
+EXTRAINCDIRS  += $(PYMITEINC)
+EXTRAINCDIRS  += $(HWDEFSINC)
+EXTRAINCDIRS  += $(DEBUG_CM3_DIR_INC)
 
-EXTRAINCDIRS += ${foreach MOD, ${MODULES} ${OPTMODULES}, $(OPMODULEDIR)/${MOD}/inc} ${OPMODULEDIR}/System/inc
+# Generate intermediate code
+gencode: ${OUTDIR}/pmlib_img.c ${OUTDIR}/pmlib_nat.c ${OUTDIR}/pmlibusr_img.c ${OUTDIR}/pmlibusr_nat.c ${OUTDIR}/pmfeatures.h 
+
+$(PYSRC): gencode
+
+PYTHON = python
+
+# Generate code for PyMite
+${OUTDIR}/pmlib_img.c ${OUTDIR}/pmlib_nat.c ${OUTDIR}/pmlibusr_img.c ${OUTDIR}/pmlibusr_nat.c ${OUTDIR}/pmfeatures.h: $(wildcard ${PYMITELIB}/*.py) $(wildcard ${PYMITEPLAT}/*.py) $(wildcard ${FLIGHTPLANLIB}/*.py) $(wildcard ${FLIGHTPLANS}/*.py) 
+	@echo $(MSG_PYMITEINIT) $(call toprel, $@)
+	@$(PYTHON) $(PYMITETOOLS)/pmImgCreator.py -f $(PYMITEPLAT)/pmfeatures.py -c -s --memspace=flash -o $(OUTDIR)/pmlib_img.c --native-file=$(OUTDIR)/pmlib_nat.c $(PYMITELIB)/list.py $(PYMITELIB)/dict.py $(PYMITELIB)/__bi.py $(PYMITELIB)/sys.py $(PYMITELIB)/string.py $(wildcard $(FLIGHTPLANLIB)/*.py)
+	@$(PYTHON) $(PYMITETOOLS)/pmGenPmFeatures.py $(PYMITEPLAT)/pmfeatures.py > $(OUTDIR)/pmfeatures.h
+	@$(PYTHON) $(PYMITETOOLS)/pmImgCreator.py -f $(PYMITEPLAT)/pmfeatures.py -c -u -o $(OUTDIR)/pmlibusr_img.c --native-file=$(OUTDIR)/pmlibusr_nat.c $(FLIGHTPLANS)/test.py
+EXTRAINCDIRS += ${foreach MOD, ${OPTMODULES} ${MODULES} ${PYMODULES}, $(OPMODULEDIR)/${MOD}/inc} ${OPMODULEDIR}/System/inc
 
 # List any extra directories to look for library files here.
 # Also add directories where the linker should search for
@@ -204,10 +283,14 @@ CFLAGS += -Os
 endif
 
 
-
+   
 # common architecture-specific flags from the device-specific library makefile
 CFLAGS += $(ARCHFLAGS)
-CFLAGS += -DDIAGNOSTICS
+
+CFLAGS += -DSTACK_DIAGNOSTICS
+CFLAGS += -DMIXERSTATUS_DIAGNOSTICS
+CFLAGS += -DRATEDESIRED_DIAGNOSTICS
+CFLAGS += -DI2C_WDG_STATS_DIAGNOSTICS
 CFLAGS += -DDIAG_TASKS
 
 # configure CMSIS DSP Library
@@ -220,6 +303,14 @@ CDEFS += -DUNALIGNED_SUPPORT_DISABLE
 # This is not the best place for these.  Really should abstract out
 # to the board file or something
 CFLAGS += -DSTM32F4XX
+CFLAGS += -DMEM_SIZE=1024000000
+
+# Output format. (can be ihex or binary or both)
+#  binary to create a load-image in raw-binary format i.e. for SAM-BA,
+#  ihex to create a load-image in Intel hex format
+#LOADFORMAT = ihex
+#LOADFORMAT = binary
+LOADFORMAT = both
 
 # Debugging format.
 DEBUGF = dwarf-2
@@ -230,19 +321,9 @@ CDEFS += -DHSE_VALUE=$(OSCILLATOR_FREQ)
 CDEFS += -DSYSCLK_FREQ=$(SYSCLK_FREQ)
 CDEFS += -DUSE_STDPERIPH_DRIVER
 CDEFS += -DUSE_$(BOARD)
-ifeq ($(ENABLE_DEBUG_CONSOLE), YES)
-CDEFS += -DPIOS_INCLUDE_DEBUG_CONSOLE
-endif
 
-ifeq ($(ENABLE_DEBUG_CONSOLE), YES)
-CDEFS += -DPIOS_INCLUDE_DEBUG_CONSOLE
-endif
-
-
-# Declare all non-optional modules as built-in to force inclusion, strip off any appended varieties of module
-get_mod_name = $(shell echo $(1) | sed "s/\/[^\/]*$///")
-BUILTIN_DEFS := ${foreach MOD, ${MODULES}, -DMODULE_$(call get_mod_name, $(MOD))_BUILTIN }
-CDEFS += ${BUILTIN_DEFS}
+# Declare all non-optional modules as built-in to force inclusion
+CDEFS += $(foreach MOD, $(notdir $(MODULES)), -DMODULE_$(MOD)_BUILTIN)
 
 # Place project-specific -D and/or -U options for
 # Assembler with preprocessor here.
@@ -270,10 +351,13 @@ CSTANDARD = -std=gnu99
 # Flags for C and C++ (arm-elf-gcc/arm-elf-g++)
 
 CFLAGS += -g$(DEBUGF)
+
 CFLAGS += -ffast-math
+
 CFLAGS += -mcpu=$(MCU)
 CFLAGS += $(CDEFS)
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS)) -I.
+
 CFLAGS += -mapcs-frame
 CFLAGS += -fomit-frame-pointer
 CFLAGS += -ffunction-sections -fdata-sections
@@ -296,14 +380,18 @@ ASFLAGS += $(ADEFS)
 ASFLAGS += -Wa,-adhlns=$(addprefix $(OUTDIR)/, $(notdir $(addsuffix .lst, $(basename $<))))
 ASFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 
+MATH_LIB = -lm
+
 # Linker flags.
 #  -Wl,...:     tell GCC to pass this to linker.
 #    -Map:      create map file
 #    --cref:    add cross reference to  map file
 LDFLAGS = -nostartfiles -Wl,-Map=$(OUTDIR)/$(TARGET).map,--cref,--gc-sections
 LDFLAGS += $(patsubst %,-L%,$(EXTRA_LIBDIRS))
+LDFLAGS += -lc
 LDFLAGS += $(patsubst %,-l%,$(EXTRA_LIBS))
-LDFLAGS += -lc -lgcc -lm
+LDFLAGS += $(MATH_LIB)
+LDFLAGS += -lc -lgcc
 LDFLAGS += -Wl,--warn-common
 LDFLAGS += -Wl,--fatal-warnings
 
@@ -313,13 +401,16 @@ LDFLAGS += $(addprefix -T,$(LINKER_SCRIPTS_APP))
 
 # Define programs and commands.
 REMOVE  = rm -f
+PYHON   = python
 
 # List of all source files.
-ALLSRC     =  $(ASRC) $(SRC) $(CPPSRC)
+ALLSRC     = $(ASRCARM) $(ASRC) $(SRCARM) $(SRC) $(CPPSRCARM) $(CPPSRC)
 # List of all source files without directory and file-extension.
 ALLSRCBASE = $(notdir $(basename $(ALLSRC)))
+
 # Define all object files.
 ALLOBJ     = $(addprefix $(OUTDIR)/, $(addsuffix .o, $(ALLSRCBASE)))
+
 # Define all listing files (used for make clean).
 LSTFILES   = $(addprefix $(OUTDIR)/, $(addsuffix .lst, $(ALLSRCBASE)))
 # Define all depedency-files (used for make clean).
@@ -328,7 +419,20 @@ DEPFILES   = $(addprefix $(OUTDIR)/dep/, $(addsuffix .o.d, $(ALLSRCBASE)))
 # Default target.
 all: gccversion build
 
+ifeq ($(LOADFORMAT),ihex)
+build: elf hex lss sym
+else
+ifeq ($(LOADFORMAT),binary)
+build: elf bin lss sym
+else
+ifeq ($(LOADFORMAT),both)
 build: elf hex bin lss sym
+else
+$(error "$(MSG_FORMATERROR) $(FORMAT)")
+endif
+endif
+endif
+
 
 # Link: create ELF output file from object files.
 $(eval $(call LINK_TEMPLATE, $(OUTDIR)/$(TARGET).elf, $(ALLOBJ)))
@@ -336,14 +440,26 @@ $(eval $(call LINK_TEMPLATE, $(OUTDIR)/$(TARGET).elf, $(ALLOBJ)))
 # Assemble: create object files from assembler source files.
 $(foreach src, $(ASRC), $(eval $(call ASSEMBLE_TEMPLATE, $(src))))
 
+# Assemble: create object files from assembler source files. ARM-only
+$(foreach src, $(ASRCARM), $(eval $(call ASSEMBLE_ARM_TEMPLATE, $(src))))
+
 # Compile: create object files from C source files.
 $(foreach src, $(SRC), $(eval $(call COMPILE_C_TEMPLATE, $(src))))
+
+# Compile: create object files from C source files. ARM-only
+$(foreach src, $(SRCARM), $(eval $(call COMPILE_C_ARM_TEMPLATE, $(src))))
 
 # Compile: create object files from C++ source files.
 $(foreach src, $(CPPSRC), $(eval $(call COMPILE_CPP_TEMPLATE, $(src))))
 
+# Compile: create object files from C++ source files. ARM-only
+$(foreach src, $(CPPSRCARM), $(eval $(call COMPILE_CPP_ARM_TEMPLATE, $(src))))
+
 # Compile: create assembler files from C source files. ARM/Thumb
 $(eval $(call PARTIAL_COMPILE_TEMPLATE, SRC))
+
+# Compile: create assembler files from C source files. ARM only
+$(eval $(call PARTIAL_COMPILE_ARM_TEMPLATE, SRCARM))
 
 $(OUTDIR)/$(TARGET).bin.o: $(OUTDIR)/$(TARGET).bin
 
@@ -394,7 +510,9 @@ clean_list :
 	$(V1) $(REMOVE) $(LSTFILES)
 	$(V1) $(REMOVE) $(DEPFILES)
 	$(V1) $(REMOVE) $(SRC:.c=.s)
+	$(V1) $(REMOVE) $(SRCARM:.c=.s)
 	$(V1) $(REMOVE) $(CPPSRC:.cpp=.s)
+	$(V1) $(REMOVE) $(CPPSRCARM:.cpp=.s)
 
 # Create output files directory
 # all known MS Windows OS define the ComSpec environment variable
@@ -412,4 +530,4 @@ else
 endif
 
 # Listing of phony targets.
-.PHONY : all build clean clean_list install docs
+.PHONY : all build clean clean_list install
