@@ -385,7 +385,7 @@ int32_t PIOS_Flash_AT45_WriteData(uintptr_t flash_id, uint16_t addr, uint8_t * d
 	if (PIOS_Flash_AT45_ClaimBus(flash_dev) != 0)
 		return -1;
 
-	uint8_t out[] = {0x82, (uint8_t)(addr >> 6) , (uint8_t)((addr << 2) | (offset >> 8)), (uint8_t)(offset)};
+	uint8_t out[] = {AT45_MM_PAGE_PROGRAM, (uint8_t)(addr >> 6) , (uint8_t)((addr << 2) | (offset >> 8)), (uint8_t)(offset)};
 
 	if (PIOS_SPI_TransferBlock(flash_dev->spi_id,out,NULL,sizeof(out),NULL) < 0) {
 		PIOS_Flash_AT45_ReleaseBus(flash_dev);
