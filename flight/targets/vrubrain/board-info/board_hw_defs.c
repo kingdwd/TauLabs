@@ -516,38 +516,18 @@ void PIOS_SPI_extdf_irq_handler(void)
 #include "pios_flashfs_logfs_priv.h"
 
 static const struct flashfs_logfs_cfg flashfs_settings_cfg = {
-	.fs_magic      = 0x3bb141cf,
-	.arena_size    = 0x00010000, /* 256 * slot size */
+	.fs_magic      = 0x99abcfef,
+	.arena_size    = 0x00004000, /* 64 * slot size = 16K bytes = 1 sector */
 	.slot_size     = 0x00000100, /* 256 bytes */
 };
 
-static const struct flashfs_logfs_cfg flashfs_waypoints_cfg = {
-	.fs_magic      = 0x9a365a64,
-	.arena_size    = 0x00010000, /* 1024 * slot size */
-	.slot_size     = 0x00000040, /* 64 bytes */
-};
-
-#if defined(PIOS_INCLUDE_FLASH_JEDEC)
-#include "pios_flash_jedec_priv.h"
-
-static const struct pios_flash_jedec_cfg flash_mx25_cfg = {
-	.expect_manufacturer = JEDEC_MANUFACTURER_MACRONIX,
-	.expect_memorytype   = 0x20,
-	.expect_capacity     = 0x16,
-	.sector_erase        = 0x20,
-};
-#endif	/* PIOS_INCLUDE_FLASH_JEDEC */
-
-#if defined(PIOS_INCLUDE_FLASH_INTERNAL)
 #include "pios_flash_internal_priv.h"
 
 static const struct pios_flash_internal_cfg flash_internal_cfg = {
 };
-#endif	/* PIOS_INCLUDE_FLASH_INTERNAL */
 
 #include "pios_flash_priv.h"
 
-#if defined(PIOS_INCLUDE_FLASH_INTERNAL)
 static const struct pios_flash_sector_range stm32f4_sectors[] = {
 	{
 		.base_sector = 0,
@@ -575,29 +555,8 @@ static const struct pios_flash_chip pios_flash_chip_internal = {
 	.sector_blocks = stm32f4_sectors,
 	.num_blocks    = NELEMENTS(stm32f4_sectors),
 };
-#endif	/* PIOS_INCLUDE_FLASH_INTERNAL */
-
-#if defined(PIOS_INCLUDE_FLASH_JEDEC)
-static const struct pios_flash_sector_range mx25_sectors[] = {
-	{
-		.base_sector = 0,
-		.last_sector = 1023,
-		.sector_size = FLASH_SECTOR_4KB,
-	},
-};
-
-uintptr_t pios_external_flash_id;
-static const struct pios_flash_chip pios_flash_chip_external = {
-	.driver        = &pios_jedec_flash_driver,
-	.chip_id       = &pios_external_flash_id,
-	.page_size     = 256,
-	.sector_blocks = mx25_sectors,
-	.num_blocks    = NELEMENTS(mx25_sectors),
-};
-#endif /* PIOS_INCLUDE_FLASH_JEDEC */
 
 static const struct pios_flash_partition pios_flash_partition_table[] = {
-#if defined(PIOS_INCLUDE_FLASH_INTERNAL)
 	{
 		.label        = FLASH_PARTITION_LABEL_BL,
 		.chip_desc    = &pios_flash_chip_internal,
@@ -607,7 +566,16 @@ static const struct pios_flash_partition pios_flash_partition_table[] = {
 		.size         = (1 - 0 + 1) * FLASH_SECTOR_16KB,
 	},
 
-	/* NOTE: sectors 2-4 of the internal flash are currently unallocated */
+	{
+		.label        = FLASH_PARTITION_LABEL_SETTINGS,
+		.chip_desc    = &pios_flash_chip_internal,
+		.first_sector = 2,
+		.last_sector  = 3,
+		.chip_offset  = (2 * FLASH_SECTOR_16KB),
+		.size         = (3 - 2 + 1) * FLASH_SECTOR_16KB,
+	},
+
+	/* NOTE: sector 4 of internal flash is currently unallocated */
 
 	{
 		.label        = FLASH_PARTITION_LABEL_FW,
@@ -620,27 +588,6 @@ static const struct pios_flash_partition pios_flash_partition_table[] = {
 
 	/* NOTE: sectors 7-11 of the internal flash are currently unallocated */
 
-#endif /* PIOS_INCLUDE_FLASH_INTERNAL */
-
-#if defined(PIOS_INCLUDE_FLASH_JEDEC)
-	{
-		.label        = FLASH_PARTITION_LABEL_SETTINGS,
-		.chip_desc    = &pios_flash_chip_external,
-		.first_sector = 0,
-		.last_sector  = 511,
-		.chip_offset  = 0,
-		.size         = (511 - 0 + 1) * FLASH_SECTOR_4KB,
-	},
-
-	{
-		.label        = FLASH_PARTITION_LABEL_WAYPOINTS,
-		.chip_desc    = &pios_flash_chip_external,
-		.first_sector = 512,
-		.last_sector  = 1023,
-		.chip_offset  = (512 * FLASH_SECTOR_4KB),
-		.size         = (1023 - 512 + 1) * FLASH_SECTOR_4KB,
-	},
-#endif	/* PIOS_INCLUDE_FLASH_JEDEC */
 };
 
 const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32_t board_revision, uint32_t * num_partitions)
