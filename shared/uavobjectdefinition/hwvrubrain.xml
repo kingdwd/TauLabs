@@ -2,7 +2,7 @@
 	<object name="HwVrubrain" singleinstance="true" settings="true" category="HardwareSettings">
 		<description>Selection of optional hardware configurations.</description>
 
-		<field name="RcvrPort" units="function" type="enum" elements="1" options="Disabled,PWM,PPM,S.Bus,PPM+Outputs,Outputs" defaultvalue="PWM"/>
+		<field name="RcvrPort" units="function" type="enum" elements="1" options="Disabled,PWM,PPM,PPM+Outputs,Outputs" defaultvalue="PWM"/>
 		<field name="SBusPort" units="function" type="enum" elements="1" options="Disabled,S.Bus" defaultvalue="Disabled"/>
 		<field name="TelemetryPort" units="function" type="enum" elements="1" options="Disabled,Telemetry,DebugConsole,ComBridge" defaultvalue="Telemetry"/>
 		<field name="GPSPort" units="function" type="enum" elements="1" options="Disabled,GPS" defaultvalue="GPS"/>
