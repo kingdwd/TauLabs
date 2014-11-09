@@ -861,6 +861,7 @@ static const struct pios_dsm_cfg pios_dsm_aux_cfg = {
 
 static const struct pios_usart_cfg pios_usart6_sbus_cfg = {
 	.regs = USART6,
+	.remap = GPIO_AF_USART6,
 	.init = {
 		.USART_BaudRate            = 100000,
 		.USART_WordLength          = USART_WordLength_8b,
